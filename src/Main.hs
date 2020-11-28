@@ -36,3 +36,25 @@ infixr 9 :<
 
 
 okList  = 1 :< 2 :< 3 :< Emp
+
+-- data [a] <p :: a -> a -> Prop> 
+--   = []  
+--   | (:) (hd :: a) (tl :: [a<p h>]<p>) -> [a]<p>
+
+{-@ type IncrList a = [a]<{\xi xj -> xi <= xj}> @-}
+
+{-@ insertSort    :: (Ord a) => xs:[a] -> (IncrList a) @-}
+insertSort []     = []
+insertSort (x:xs) = insert x (insertSort xs)
+
+{-@ insert :: (Ord a) => a -> IncrList a -> IncrList a @-}
+insert y []     = [y]
+insert y (x:xs)
+  | y <= x      = y : x : xs
+  | otherwise   = x : insert y xs
+
+
+{-@ whatGosUp :: IncrList Integer @-}
+whatGosUp = [1,2,3]
+
+
