@@ -83,10 +83,10 @@ split_ x (y:ys)
   where
     (xs', ys') = split_ x ys
 
-{-@ conc :: n:Int -> IncrList Int<{\x -> x <= n}> -> IncrList Int<{\x -> x <= n}> -> IncrList Int @-}
-conc :: Int -> [Int] -> [Int] -> [Int]
-conc _ [] ys = ys
-conc n (x:xs) ys = x : conc n xs ys 
+-- {-@ conc :: n:Int -> IncrList Int<{\x -> x <= n}> -> IncrList Int<{\x -> x <= n}> -> IncrList Int @-}
+-- conc :: Int -> [Int] -> [Int] -> [Int]
+-- conc _ [] ys = ys
+-- conc n (x:xs) ys = x : conc n xs ys 
 
 -- {-@ sort_q :: forall <p :: Int -> Bool> . [Int<p>] -> IncrList Int<p> @-}
 -- sort_q :: [Int] -> [Int]
@@ -97,3 +97,9 @@ conc n (x:xs) ys = x : conc n xs ys
 --     (ys,zs) = split_ x xs
 --     ys' = sort_q ys
 --     zs' = sort_q zs
+
+{-@ maxi :: forall <p :: Int -> Bool> . {v : [Int<p>] | len v > 0} ->  Int<p>@-}
+maxi :: [Int] -> Int
+maxi [x] = x
+maxi (x:xs) = if y > x then y else x where y = maxi xs
+
