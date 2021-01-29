@@ -71,20 +71,29 @@ bigger5 :: PropL Int
 bigger5 = PropL [6,7,8,9]
 
 
-{-@ data SplitList a <p1 :: a -> Bool, p2 :: a -> Bool> = L [a<p1>] [a<p2>] @-}
-data SplitList a = L [a] [a]
+{-@ data SplitList Int <p1 :: Int -> Bool, p2 :: Int -> Bool> = L [Int<p1>] [Int<p2>] @-}
+data SplitList = L [Int] [Int]
 
--- Unclear why this specification is illeagal
--- Error:
--- /Users/haetze/Documents/Code/LH-Playground/src/Main.hs:77:55: error:
-    -- • Cannot parse specification:
-    -- unexpected "\\"
-    -- expecting monoPredicateP
--- {-@ split :: Ord a => (n : a) -> [a] -> SplitList a <{\x -> x <= n}, {\x -> x > n}> @-}
--- split_ :: Ord a => a -> [a] -> SplitList a
--- split_ x [] = L [x] []
--- split_ x (y:ys)
---   | y <= x = L (y:xs') (ys')
---   | y >  x = L (xs') (y:ys')
+{-@ split_ :: n : Int -> [Int] -> ([Int<{\x -> x <= n}>], [Int<{\x -> x > n}>]) @-}
+split_ :: Int -> [Int] -> ([Int],[Int])
+split_ x [] = ([x],[])
+split_ x (y:ys)
+  | y <= x = (y:xs', ys')
+  | y >  x = (xs', y:ys')
+  where
+    (xs', ys') = split_ x ys
+
+{-@ conc :: n:Int -> IncrList Int<{\x -> x <= n}> -> IncrList Int<{\x -> x <= n}> -> IncrList Int @-}
+conc :: Int -> [Int] -> [Int] -> [Int]
+conc _ [] ys = ys
+conc n (x:xs) ys = x : conc n xs ys 
+
+-- {-@ sort_q :: forall <p :: Int -> Bool> . [Int<p>] -> IncrList Int<p> @-}
+-- sort_q :: [Int] -> [Int]
+-- sort_q [] = []
+-- sort_q [x] = [x]
+-- sort_q (x:xs) = ys' ++ zs'
 --   where
---     L xs' ys' = split_ x ys
+--     (ys,zs) = split_ x xs
+--     ys' = sort_q ys
+--     zs' = sort_q zs
