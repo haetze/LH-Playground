@@ -39,7 +39,7 @@ okList  = 1 :< 2 :< 3 :< Emp
 
 -- data [a] <p :: a -> a -> Prop> 
 --   = []  
---   | (:) (hd :: a) (tl :: [a<p h>]<p>) -> [a]<p>
+--   | (:) (hd :: a) (tl :: [a<p hd>]<p>) -> [a]<p>
 
 {-@ type IncrList a = [a]<{\xi xj -> xi <= xj}> @-}
 
@@ -58,3 +58,33 @@ insert y (x:xs)
 whatGosUp = [1,2,3]
 
 
+data BiggerN = B Int [Int] deriving(Show, Read, Eq) 
+
+
+{-@ data PropL a <p :: a -> Bool>  = PropL [a<p>]@-}
+data PropL a = PropL [a]
+
+{-@ type Bigger5 = PropL Int <{\n -> 5 < n}> @-}
+
+{-@ bigger5 :: Bigger5 @-}
+bigger5 :: PropL Int
+bigger5 = PropL [6,7,8,9]
+
+
+{-@ data SplitList a <p1 :: a -> Bool, p2 :: a -> Bool> = L [a<p1>] [a<p2>] @-}
+data SplitList a = L [a] [a]
+
+-- Unclear why this specification is illeagal
+-- Error:
+-- /Users/haetze/Documents/Code/LH-Playground/src/Main.hs:77:55: error:
+    -- • Cannot parse specification:
+    -- unexpected "\\"
+    -- expecting monoPredicateP
+-- {-@ split :: Ord a => (n : a) -> [a] -> SplitList a <{\x -> x <= n}, {\x -> x > n}> @-}
+-- split_ :: Ord a => a -> [a] -> SplitList a
+-- split_ x [] = L [x] []
+-- split_ x (y:ys)
+--   | y <= x = L (y:xs') (ys')
+--   | y >  x = L (xs') (y:ys')
+--   where
+--     L xs' ys' = split_ x ys
