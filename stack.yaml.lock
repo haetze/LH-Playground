@@ -48,7 +48,7 @@ packages:
     hackage: liquid-ghc-prim-0.6.1
 snapshots:
 - completed:
-    size: 503181
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2020/6/25.yaml
-    sha256: 96e98363790e62f4498da632069a03101cf588b3b47925e707f080cff4b6cfbb
-  original: nightly-2020-06-25
+    size: 585393
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2021/6/14.yaml
+    sha256: a5edd4e65bdb6e56760e7d7c1275d2c3b24fb95e730e957e9d60824315e8801d
+  original: nightly-2021-06-14

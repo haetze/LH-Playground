@@ -1,4 +1,4 @@
-resolver: nightly-2020-06-25
+resolver: nightly-2021-06-14
 packages:
   - .
 extra-deps:
@@ -6,5 +6,5 @@ extra-deps:
   - Diff-0.3.4
   - liquid-fixpoint-0.8.10.1
   - liquidhaskell-0.8.10.1
-  - liquid-base-4.14.0.0
+  - liquid-base-4.15.0.0
   - liquid-ghc-prim-0.6.1
