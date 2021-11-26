@@ -377,3 +377,28 @@ foldlR (x:xs) = reverse (x:xs) ==.
                 foldl ff (ff x []) xs ==.
                 foldl ff [] (x:xs)
                 *** QED
+
+
+
+{-@ reflect f3 @-}
+f3 :: a -> [a] -> [a]
+f3 x xs = xs ++ [x]
+
+{-@ foldlID :: xs:[a] -> ys:[a] -> {ys ++ xs == foldl f3 ys xs} @-}
+foldlID :: [a] -> [a] -> ()
+foldlID [] ys = foldl f3 ys [] ==. 
+                ys ? emptyConc ys ==. 
+                ys ++ []
+                *** QED
+foldlID (x:xs) ys = foldl f3 ys (x:xs) ==. 
+                    foldl f3 (f3 x ys) xs ==.
+                    foldl f3 (ys ++ [x]) xs ? foldlID xs (ys ++ [x]) ==.
+                    (ys ++ [x]) ++ xs ? assoc ys [x] xs ==.
+                    ys ++ ([x] ++ xs) ==.
+                    ys ++ (x:([] ++ xs)) ==.
+                    ys ++ (x:xs)
+                    *** QED
+
+{-@ foldlIDx :: xs:[a] -> {xs == foldl f3 [] xs} @-}
+foldlIDx :: [a] -> ()
+foldlIDx xs = foldlID xs []
