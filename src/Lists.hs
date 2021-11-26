@@ -305,3 +305,75 @@ revedP2 (x:xs) ys p = reverse (x:xs) ==.
      p2 = and2 (x == l ys) (reved xs (init2 ys)) p -- reved xs (init ys)
 
      
+{-@ reflect map' @-}
+{-@ map' :: f:(a->b) -> xs:[a] -> {v:[b] | length xs == length v} @-}
+map' :: (a->b) -> [a] -> [b]
+map' f [] = []
+map' f (x:xs) = f x : map' f xs
+
+{-@ mapP1 :: Eq b =>  xs:[a] -> ys:[a] -> f:(a->b) -> {map' f (xs++ys) == map' f xs ++ map' f ys}@-}
+mapP1 :: Eq b => [a] -> [a] -> (a->b) -> ()
+mapP1 [] ys f = map' f ([] ++ ys) ==. map' f ys ==. [] ++ map' f ys ==. map' f [] ++ map' f ys *** QED
+mapP1 (x:xs) ys f = map' f (x:xs ++ ys) ==.
+                    map' f (x:(xs ++ ys)) ==.
+                    f x : map' f (xs ++ ys) ? mapP1 xs ys f ==.
+                    f x : (map' f xs ++ map' f ys) ==.
+                    (f x : (map' f xs)) ++ map' f ys ==.
+                    map' f (x:xs) ++ map' f ys
+                    *** QED
+
+{-@ reflect foldl @-}
+foldl :: (a -> b -> b) -> b -> [a] -> b
+foldl f b [] = b
+foldl f b (a:as) = foldl f (f a b) as
+
+{-@ assoc :: xs:[a] -> ys:[a] -> zs:[a] -> {xs ++ (ys ++ zs) == (xs ++ ys) ++ zs} @-}
+assoc :: [a] -> [a] -> [a] -> ()
+assoc [] ys zs = [] ++ (ys ++ zs) ==. ys ++ zs ==. ([] ++ ys) ++ zs *** QED
+assoc (x:xs) ys zs = (x:xs) ++ (ys ++ zs) ==. 
+                        x:(xs ++ (ys ++ zs)) ? assoc xs ys zs ==.
+                        x:((xs ++ ys) ++ zs) ==.
+                        (x:(xs ++ ys)) ++ zs ==.
+                        ((x:xs) ++ ys) ++ zs
+                        *** QED
+
+{-@ reflect ff @-}
+ff :: a -> [a] -> [a]
+ff x xs = x:xs
+
+{-@ foldlP :: xs:[a] -> ys:[a] -> {foldl ff [] xs ++ ys == foldl ff ys xs} @-}
+foldlP :: [a] -> [a] -> ()
+foldlP [] ys = foldl ff [] [] ++ ys ==.
+                [] ++ ys ==.
+                ys ==.
+                foldl ff ys []
+                *** QED
+foldlP (x:xs) ys = foldl ff [] (x:xs) ++ ys ==.
+                    foldl ff (ff x []) xs ++ ys ==.
+                    foldl ff (x:[]) xs ++ ys ==.
+                    foldl ff [x] xs ++ ys ? foldlP xs [x] ==.
+                    (foldl ff [] xs ++ [x]) ++ ys ? assoc (foldl ff [] xs) [x] ys ==.
+                    (foldl ff [] xs) ++ ([x] ++ ys) ==.
+                    (foldl ff [] xs) ++ (x:([] ++ ys)) ==.
+                    (foldl ff [] xs) ++ (x:ys) ? foldlP xs (x:ys) ==.
+                    foldl ff (x:ys) xs ==.
+                    foldl ff (ff x ys) xs ==.
+                    foldl ff ys (x:xs)
+                    *** QED
+
+
+
+
+
+
+
+{-@ foldlR :: xs:[a] -> {reverse xs == foldl ff [] xs} @-}
+foldlR :: [a] -> ()
+foldlR [] = ()
+foldlR (x:xs) = reverse (x:xs) ==. 
+                reverse xs ++ [x] ? foldlR xs ==.
+                foldl ff [] xs ++ [x] ? foldlP xs [x] ==.
+                foldl ff [x] xs ==.
+                foldl ff (ff x []) xs ==.
+                foldl ff [] (x:xs)
+                *** QED
