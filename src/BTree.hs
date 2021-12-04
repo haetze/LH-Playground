@@ -134,4 +134,86 @@ toIncList :: Ord a => a -> a -> BST a -> [a]
 toIncList _ _ Leaf = []
 toIncList mini maxi (Node x l r) = app mini x  maxi (app mini x x (toIncList mini x l) [x]) (toIncList x maxi r) 
 
+{-@ forget_range :: mini:a -> maxi:a -> x:IncrListR a mini maxi -> IncrList a @-}
+forget_range :: a -> a -> [a] -> [a] 
+forget_range _ _ x = x
 
+{-@ reflect sorted @-}
+{-@ sorted :: Ord => [a] -> Bool @-}
+sorted:: Ord a => [a] -> Bool
+sorted [] = True
+sorted [x] = True
+sorted (x:y:zs) = x <= y && sorted (y:zs)
+
+
+{-@ sortedP :: Ord a => x:IncrList a -> {sorted x}@-}
+sortedP :: Ord a => [a] -> ()
+sortedP [] = ()
+sortedP [x] = ()
+sortedP (x:y:zs) = () ? sortedP (y:zs)
+
+{-@ and1 :: a:Bool -> b:Bool -> p:{a && b} -> {a} @-}
+and1 :: Bool -> Bool -> () -> ()
+and1 a b p = ()
+
+{-@ and2 :: a:Bool -> b:Bool -> p:{a && b} -> {b} @-}
+and2 :: Bool -> Bool -> () -> ()
+and2 a b p = ()
+
+{-@ measure len @-}
+{-@ len :: [a] -> Nat @-}
+len:: [a] -> Int
+len [] = 0
+len (_:xs) = 1 + len xs
+
+{-@ sortedQ :: Ord a => x:{v:[a] | len v > 0} -> p:{sorted x} -> {y:IncrListM a (head x) | x == y} @-}
+sortedQ :: Ord a => [a] -> () -> [a]
+sortedQ [] p = die "Can't happen"
+sortedQ [x] p = [x]
+sortedQ (x:y:zs) p = x:sortedQ (y:zs) p
+
+{-@ sortedQ' :: min:a -> y:IncrListM a min -> {x:IncrList a | x == y} @-}
+sortedQ' :: a -> [a] -> [a]
+sortedQ' _ [] = []
+sortedQ' _ [x] = [x]
+sortedQ' min (x:y:xs) = x:sortedQ' y (y:xs)
+
+{-@ sortedQF :: Ord a => x:[a] -> p:{sorted x} -> {y:IncrList a | x == y} @-}
+sortedQF :: Ord a => [a] -> () -> [a]
+sortedQF [] _ = [] 
+sortedQF xs p = sortedQ' (head xs) (sortedQ xs p) 
+
+{-@ infix   ++ @-}
+{-@ reflect ++ @-}
+{-@ (++) :: xs:[a] -> ys:[a] -> {os:[a] | len os == len xs + len ys} @-}
+(++) :: [a] -> [a] -> [a]
+[]     ++ ys = ys
+(x:xs) ++ ys = x:(xs ++ ys)
+
+{-@ reverse :: is:[a] -> {os:[a] | len is == len os} @-}
+reverse :: [a] -> [a]
+reverse []     = []
+reverse (x:xs) = reverse xs ++ [x]
+
+{-@ reflect reverse @-}
+
+{-@ addDec :: Ord a => x:a -> xs:DecrList (Min a x) -> {ys:DecrList (Min a x) | xs ++ [x] == ys} @-}
+addDec :: Ord a => a -> [a] -> [a]
+addDec x [] = [x]
+addDec x (y:xs) = y:(addDec x xs) 
+
+{-@ rev_inc_dec :: Ord a => m:a -> x:IncrList (Min a m)   -> {y:DecrList (Min a m) | y == reverse x} @-}
+rev_inc_dec :: Ord a => a -> [a] -> [a]
+rev_inc_dec m [] = []
+rev_inc_dec m (x:xs) = addDec x (rev_inc_dec x xs)
+
+
+{-@ addInc :: Ord a => x:a -> xs:IncrList (Max a x) -> {ys:IncrList (Max a x) | xs ++ [x] == ys} @-}
+addInc :: Ord a => a -> [a] -> [a]
+addInc x [] = [x]
+addInc x (y:xs) = y:(addInc x xs) 
+
+{-@ rev_dec_inc :: Ord a => m:a -> x:DecrList (Max a m)   -> {y:IncrList (Max a m) | y == reverse x} @-}
+rev_dec_inc :: Ord a => a -> [a] -> [a]
+rev_dec_inc m [] = []
+rev_dec_inc m (x:xs) = addInc x (rev_dec_inc x xs)
